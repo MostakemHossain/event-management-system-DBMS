@@ -48,3 +48,45 @@ SET phoneNumber = '01911122334'
 WHERE user_id = 1;
 DELETE FROM Users WHERE user_id = 6;
 SELECT * FROM Users WHERE bio LIKE '%developer%';
+
+
+-- create a venue for event management
+CREATE TABLE Venues (
+    venue_id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    location VARCHAR(255) NOT NULL,
+    capacity INT NOT NULL,
+    description TEXT,
+    contact_info VARCHAR(255),
+    facilities TEXT,
+    booking_status ENUM('Available', 'Booked') DEFAULT 'Available',
+    total_price DECIMAL(10, 2),  
+    images TEXT,          
+    manager_name VARCHAR(255),
+    manager_contact VARCHAR(255),
+    opening_hours VARCHAR(255),  -- Example: "Mon-Fri, 9:00 AM - 6:00 PM"
+    parking_availability ENUM('Available', 'Not Available') DEFAULT 'Available'
+);
+-- insert data into venue table
+INSERT INTO Venues (name, location, capacity, description, contact_info, facilities, booking_status, total_price, images, manager_name, manager_contact, opening_hours, parking_availability) 
+VALUES 
+('Dhaka Conference Center', 'House 5, Road 12, Gulshan-2, Dhaka', 500, 'A large conference venue for seminars, conferences, and exhibitions in Dhaka city.', '0171-2345678', 'Wi-Fi, Projector, Sound System, AC, Parking', 'Available', 15000.00, '["dhaka_conference_1.jpg", "dhaka_conference_2.jpg"]', 'Ahmed Rahman', 'ahmed.rahman@example.com', 'Mon-Sun, 9:00 AM - 6:00 PM', 'Available'),
+('Chittagong Banquet Hall', 'Chittagong City Center, Bangladesh', 300, 'An elegant venue ideal for weddings, corporate events, and large gatherings.', '0182-3456789', 'Wi-Fi, Stage, AC, Lighting, Parking', 'Booked', 10000.00, '["chittagong_banquet_1.jpg", "chittagong_banquet_2.jpg"]', 'Mita Begum', 'mita.begum@example.com', 'Mon-Sun, 10:00 AM - 8:00 PM', 'Available'),
+('Sylhet Luxury Lounge', 'Mirpur Road, Sylhet, Bangladesh', 150, 'A luxurious venue for intimate parties, conferences, and private gatherings.', '0175-9876543', 'DJ Setup, Projector, Bar, AC, Parking', 'Available', 12000.00, '["sylhet_lounge_1.jpg", "sylhet_lounge_2.jpg"]', 'Sajib Ali', 'sajib.ali@example.com', 'Mon-Sun, 11:00 AM - 10:00 PM', 'Not Available'),
+('Rajshahi Outdoor Arena', 'Rajshahi Stadium, Rajshahi, Bangladesh', 1000, 'An open-air arena for concerts, festivals, and large-scale events.', '0191-2468101', 'Sound System, Stage, VIP Area, AC, Parking', 'Available', 20000.00, '["rajshahi_arena_1.jpg", "rajshahi_arena_2.jpg"]', 'Suman Sarkar', 'suman.sarkar@example.com', 'Fri-Sun, 12:00 PM - 11:00 PM', 'Available');
+
+-- query for venues
+SELECT * FROM Venues;
+SELECT * FROM Venues WHERE booking_status = 'Available';
+
+SELECT * FROM Venues WHERE capacity >= 300;
+SELECT * FROM Venues WHERE location LIKE '%Dhaka%';
+UPDATE Venues
+SET total_price = 16000.00
+WHERE venue_id = 1;
+SELECT booking_status, COUNT(*) AS venue_count
+FROM Venues
+GROUP BY booking_status;
+
+
+
