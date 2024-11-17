@@ -89,4 +89,181 @@ FROM Venues
 GROUP BY booking_status;
 
 
+-- Organizer table create for event management
 
+CREATE TABLE Events (
+    event_id INT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    start_date DATE NOT NULL,
+    end_date DATE NOT NULL,
+    organizer_id INT,
+    venue_id INT,
+    FOREIGN KEY (organizer_id) REFERENCES Users(user_id),
+    FOREIGN KEY (venue_id) REFERENCES Venues(venue_id)
+);
+
+-- Insert value for Events table
+
+INSERT INTO Events (title, description, start_date, end_date, organizer_id, venue_id) VALUES
+('Tech Conference', 'Annual Tech Meet', '2024-12-01', '2024-12-02', 2, 9);
+
+--  Fetch all events along with the organizer's name and email
+SELECT 
+    e.event_id,
+    e.title AS event_title,
+    e.description AS event_description,
+    e.start_date,
+    e.end_date,
+    u.name AS organizer_name,
+    u.email AS organizer_email
+FROM 
+    Events e
+JOIN 
+    Users u
+ON 
+    e.organizer_id = u.user_id;
+
+--Find all events organized by a specific organizer
+SELECT 
+    e.event_id,
+    e.title AS event_title,
+    e.description AS event_description,
+    e.start_date,
+    e.end_date,
+    u.name AS organizer_name
+FROM 
+    Events e
+JOIN 
+    Users u
+ON 
+    e.organizer_id = u.user_id
+WHERE 
+    u.name = 'Shamima Akter';
+
+--  Get the total number of events organized by each user
+SELECT 
+    u.user_id,
+    u.name AS organizer_name,
+    COUNT(e.event_id) AS total_events
+FROM 
+    Users u
+LEFT JOIN 
+    Events e
+ON 
+    u.user_id = e.organizer_id
+WHERE 
+    u.role = 'organizer'
+GROUP BY 
+    u.user_id, u.name;
+
+-- List all events along with the venue details and organizer's contact information
+SELECT 
+    e.event_id,
+    e.title AS event_title,
+    e.start_date,
+    e.end_date,
+    v.name AS venue_name,
+    v.location AS venue_location,
+    u.name AS organizer_name,
+    u.phoneNumber AS organizer_contact
+FROM 
+    Events e
+JOIN 
+    Users u
+ON 
+    e.organizer_id = u.user_id
+JOIN 
+    Venues v
+ON 
+    e.venue_id = v.venue_id;
+
+-- Find events hosted at venues with a capacity greater than 500
+SELECT 
+    e.event_id,
+    e.title AS event_title,
+    v.name AS venue_name,
+    v.capacity,
+    u.name AS organizer_name
+FROM 
+    Events e
+JOIN 
+    Venues v
+ON 
+    e.venue_id = v.venue_id
+JOIN 
+    Users u
+ON 
+    e.organizer_id = u.user_id
+WHERE 
+    v.capacity > 500;
+
+-- Find the events scheduled for December 2024 along with their organizer and venue details
+
+SELECT 
+    e.event_id,
+    e.title AS event_title,
+    e.start_date,
+    e.end_date,
+    u.name AS organizer_name,
+    u.email AS organizer_email,
+    v.name AS venue_name,
+    v.location AS venue_location
+FROM 
+    Events e
+JOIN 
+    Users u
+ON 
+    e.organizer_id = u.user_id
+JOIN 
+    Venues v
+ON 
+    e.venue_id = v.venue_id
+WHERE 
+    e.start_date BETWEEN '2024-12-01' AND '2024-12-31';
+
+-- Fetch events where the organizer's bio contains the word "developer"
+SELECT 
+    e.event_id,
+    e.title AS event_title,
+    u.name AS organizer_name,
+    u.bio AS organizer_bio
+FROM 
+    Events e
+JOIN 
+    Users u
+ON 
+    e.organizer_id = u.user_id
+WHERE 
+    u.bio LIKE '%developer%';
+
+-- Events table query
+SELECT * FROM Events;
+SELECT * 
+FROM Events
+WHERE start_date BETWEEN '2024-12-01' AND '2024-12-31';
+
+SELECT * 
+FROM Events
+WHERE organizer_id = 2;
+
+SELECT COUNT(*) AS total_events 
+FROM Events;
+SELECT * 
+FROM Events
+WHERE venue_id = 9;
+SELECT * 
+FROM Events
+WHERE title LIKE '%Tech%';
+
+UPDATE Events
+SET description = 'Updated description for the event'
+WHERE event_id = 1;
+
+SELECT *, DATEDIFF(end_date, start_date) AS event_duration
+FROM Events
+WHERE DATEDIFF(end_date, start_date) > 1;
+
+SELECT * 
+FROM Events
+ORDER BY start_date ASC;
