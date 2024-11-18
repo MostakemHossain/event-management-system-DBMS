@@ -267,3 +267,161 @@ WHERE DATEDIFF(end_date, start_date) > 1;
 SELECT * 
 FROM Events
 ORDER BY start_date ASC;
+
+
+-- Create a Tickets table for event management
+CREATE TABLE Tickets (
+    ticket_id INT AUTO_INCREMENT PRIMARY KEY,
+    event_id INT,
+    user_id INT,
+    ticket_type ENUM('REGULAR', 'VIP', 'VVIP') DEFAULT 'REGULAR',
+    price DECIMAL(10, 2),
+    purchase_date DATE,
+    FOREIGN KEY (event_id) REFERENCES Events(event_id),
+    FOREIGN KEY (user_id) REFERENCES Users(user_id)
+);
+
+-- Insert value in Ticket table
+INSERT INTO Tickets (event_id, user_id, ticket_type, price, purchase_date) 
+VALUES 
+(3, 2, 'REGULAR', 100.00, '2024-11-01'),
+(3, 3, 'VIP', 200.00, '2024-11-02'),
+(2, 4, 'VVIP', 300.00, '2024-11-05'),
+(2, 5, 'REGULAR', 100.00, '2024-11-06'),
+(3, 6, 'VIP', 250.00, '2024-11-10'),
+(3, 2, 'REGULAR', 120.00, '2024-11-12'),
+(4, 3, 'VVIP', 350.00, '2024-11-15'),
+(4, 5, 'REGULAR', 150.00, '2024-11-18');
+
+
+-- Query From  Tickets Table
+
+SELECT 
+    t.ticket_id,
+    t.ticket_type,
+    t.price,
+    t.purchase_date,
+    u.name AS buyer_name,
+    e.title AS event_title
+FROM 
+    Tickets t
+JOIN 
+    Users u ON t.user_id = u.user_id
+JOIN 
+    Events e ON t.event_id = e.event_id;
+
+SELECT * FROM Tickets;
+
+SELECT * FROM Tickets
+WHERE ticket_type = 'VIP';
+
+SELECT event_id, SUM(price) AS total_revenue
+FROM Tickets
+WHERE event_id = 3
+GROUP BY event_id;
+
+SELECT * FROM Tickets
+WHERE purchase_date = '2024-11-02';
+
+
+--Get all tickets purchased by a specific user
+SELECT 
+    t.ticket_id,
+    t.ticket_type,
+    t.price,
+    t.purchase_date,
+    e.title AS event_title,
+    e.start_date AS event_start_date
+FROM 
+    Tickets t
+JOIN 
+    Events e ON t.event_id = e.event_id
+WHERE 
+    t.user_id = 2;
+-- Get all events along with the number of tickets sold for each
+SELECT 
+    e.event_id,
+    e.title AS event_title,
+    COUNT(t.ticket_id) AS tickets_sold
+FROM 
+    Events e
+LEFT JOIN 
+    Tickets t ON e.event_id = t.event_id
+GROUP BY 
+    e.event_id, e.title;
+
+--List all users who purchased VIP tickets
+SELECT 
+    u.user_id,
+    u.name AS user_name,
+    u.email,
+    t.ticket_id,
+    e.title AS event_title
+FROM 
+    Tickets t
+JOIN 
+    Users u ON t.user_id = u.user_id
+JOIN 
+    Events e ON t.event_id = e.event_id
+WHERE 
+    t.ticket_type = 'VIP';
+
+--Find the total revenue generated from ticket sales for a specific event
+SELECT 
+    e.event_id,
+    e.title AS event_title,
+    SUM(t.price) AS total_revenue
+FROM 
+    Tickets t
+JOIN 
+    Events e ON t.event_id = e.event_id
+WHERE 
+    e.event_id = 2 
+GROUP BY 
+    e.event_id, e.title;
+
+-- Get details of tickets purchased between specific dates
+SELECT 
+    t.ticket_id,
+    u.name AS user_name,
+    e.title AS event_title,
+    t.ticket_type,
+    t.price,
+    t.purchase_date
+FROM 
+    Tickets t
+JOIN 
+    Users u ON t.user_id = u.user_id
+JOIN 
+    Events e ON t.event_id = e.event_id
+WHERE 
+    t.purchase_date BETWEEN '2024-11-01' AND '2024-11-30'; 
+
+-- Find the top 3 users who have spent the most on ticket purchases
+SELECT 
+    u.user_id,
+    u.name AS user_name,
+    u.email,
+    SUM(t.price) AS total_spent
+FROM 
+    Tickets t
+JOIN 
+    Users u ON t.user_id = u.user_id
+GROUP BY 
+    u.user_id, u.name, u.email
+ORDER BY 
+    total_spent DESC
+LIMIT 3;
+
+-- Retrieve events with no tickets sold
+SELECT 
+    e.event_id,
+    e.title AS event_title,
+    e.start_date,
+    e.end_date
+FROM 
+    Events e
+LEFT JOIN 
+    Tickets t ON e.event_id = t.event_id
+WHERE 
+    t.ticket_id IS NULL;
