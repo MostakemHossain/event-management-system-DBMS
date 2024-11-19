@@ -610,3 +610,5 @@ LEFT JOIN
     Attendance ON Events.event_id = Attendance.event_id AND Attendance.status = 'Absent'
 WHERE 
     Attendance.attendance_id IS NULL;
+    
+    
