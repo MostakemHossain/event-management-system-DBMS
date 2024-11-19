@@ -425,3 +425,73 @@ LEFT JOIN
     Tickets t ON e.event_id = t.event_id
 WHERE 
     t.ticket_id IS NULL;
+--- CREATE SPONSORS TABLE
+CREATE TABLE Sponsors (
+    sponsor_id INT AUTO_INCREMENT PRIMARY KEY,    
+    name VARCHAR(255) NOT NULL,                  
+    contact_person VARCHAR(255),               
+    contact_email VARCHAR(255) UNIQUE NOT NULL, 
+    contact_phone VARCHAR(15),                 
+    sponsorship_amount DECIMAL(10, 2) NOT NULL, 
+    sponsorship_type ENUM('Platinum', 'Gold', 'Silver', 'Bronze') DEFAULT 'Bronze', 
+    logo TEXT,                              
+    event_id INT, 
+    FOREIGN KEY (event_id) REFERENCES Events(event_id)
+);
+SELECT * FROM Events;
+
+INSERT INTO Sponsors (
+    name, 
+    contact_person, 
+    contact_email, 
+    contact_phone, 
+    sponsorship_amount, 
+    sponsorship_type, 
+    logo, 
+    event_id
+) VALUES
+('Tech Innovators', 'John Doe', 'john.doe@techinnovators.com', '01712345678', 5000.00, 'Platinum', '["tech_innovators_logo.jpg"]', 2),
+('Smart Solutions', 'Jane Smith', 'jane.smith@smartsolutions.com', '01823456789', 3000.00, 'Gold', '["smart_solutions_logo.jpg"]', 6),
+('Green Energy', 'Alice Brown', 'alice.brown@greenenergy.com', '01934567890', 2000.00, 'Silver', '["green_energy_logo.jpg"]', 3),
+('Fresh Start', 'Bob Davis', 'bob.davis@freshstart.com', '01745678901', 1000.00, 'Bronze', '["fresh_start_logo.jpg"]', 4);
+
+SELECT 
+    s.sponsor_id,
+    s.name AS sponsor_name,
+    s.contact_person,
+    s.contact_email,
+    s.sponsorship_amount,
+    s.sponsorship_type,
+    e.title AS event_title
+FROM 
+    Sponsors s
+JOIN 
+    Events e
+ON 
+    s.event_id = e.event_id
+WHERE 
+    e.event_id = 2;
+
+SELECT 
+    e.event_id,
+    e.title AS event_title,
+    SUM(s.sponsorship_amount) AS total_sponsorship
+FROM 
+    Events e
+LEFT JOIN 
+    Sponsors s
+ON 
+    e.event_id = s.event_id
+GROUP BY 
+    e.event_id, e.title;
+SELECT event_id, COUNT(sponsor_id) AS sponsor_count
+FROM Sponsors
+GROUP BY event_id;
+
+SELECT event_id, MAX(sponsorship_amount) AS highest_sponsorship
+FROM Sponsors
+GROUP BY event_id;
+
+SELECT * 
+FROM Sponsors
+WHERE sponsorship_type = 'Gold'; -- Replace 'Gold' with 'Platinum', 'Silver', etc.
