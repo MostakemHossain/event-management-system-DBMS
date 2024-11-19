@@ -494,4 +494,119 @@ GROUP BY event_id;
 
 SELECT * 
 FROM Sponsors
-WHERE sponsorship_type = 'Gold'; -- Replace 'Gold' with 'Platinum', 'Silver', etc.
+
+
+-- Attendence table
+CREATE TABLE Attendance (
+    attendance_id INT AUTO_INCREMENT PRIMARY KEY,
+    event_id INT NOT NULL,
+    status ENUM('Present', 'Absent') NOT NULL,
+    check_in_time DATETIME,
+    check_out_time DATETIME,
+    FOREIGN KEY (event_id) REFERENCES Events(event_id)
+);
+
+
+INSERT INTO Attendance (event_id, status, check_in_time, check_out_time)
+VALUES
+( 4, 'Present', '2024-11-15 09:00:00', '2024-11-15 17:00:00'),
+( 2, 'Absent', NULL, NULL),
+( 3, 'Present', '2024-11-16 10:30:00', '2024-11-16 15:30:00');
+
+
+CREATE TABLE Feedback (
+    feedback_id INT AUTO_INCREMENT PRIMARY KEY,
+    attendance_id INT NOT NULL,
+    event_id INT NOT NULL,
+    rating TINYINT NOT NULL CHECK (rating BETWEEN 1 AND 5),
+    comments TEXT,
+    feedback_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (attendance_id) REFERENCES Attendance(attendance_id),
+    FOREIGN KEY (event_id) REFERENCES Events(event_id)
+);
+
+
+INSERT INTO Feedback (attendance_id, event_id, rating, comments)
+VALUES
+(4, 4, 5, 'Great event! Very well organized.'),
+(5, 2, 3, 'Could not attend, but the event seemed interesting.'),
+(6, 3, 4, 'Good event overall, but the venue was a bit crowded.');
+
+--Fetch All Feedback with Attendance Details
+SELECT 
+    f.feedback_id,
+    f.event_id,
+    f.rating,
+    f.comments,
+    a.status,
+    a.check_in_time,
+    a.check_out_time
+FROM 
+    Feedback f
+JOIN 
+    Attendance a ON f.attendance_id = a.attendance_id;
+
+--List all attendance records along with event details:
+SELECT 
+    Attendance.attendance_id,
+    Attendance.status,
+    Attendance.check_in_time,
+    Attendance.check_out_time,
+    Events.title AS event_title,
+    Events.start_date,
+    Events.end_date
+FROM 
+    Attendance
+JOIN 
+    Events ON Attendance.event_id = Events.event_id;
+
+--Fetch feedback details along with associated attendance and event information:
+SELECT 
+    Feedback.feedback_id,
+    Feedback.rating,
+    Feedback.comments,
+    Feedback.feedback_date,
+    Events.title AS event_title,
+    Attendance.status AS attendance_status,
+    Attendance.check_in_time,
+    Attendance.check_out_time
+FROM 
+    Feedback
+JOIN 
+    Attendance ON Feedback.attendance_id = Attendance.attendance_id
+JOIN 
+    Events ON Feedback.event_id = Events.event_id;
+
+--Retrieve feedback summary (average rating) for each event:
+SELECT 
+    Events.event_id,
+    Events.title AS event_title,
+    AVG(Feedback.rating) AS average_rating
+FROM 
+    Feedback
+JOIN 
+    Events ON Feedback.event_id = Events.event_id
+GROUP BY 
+    Events.event_id, Events.title;
+--List events where at least one attendee has provided feedback:
+SELECT DISTINCT
+    Events.event_id,
+    Events.title AS event_title,
+    Events.start_date,
+    Events.end_date
+FROM 
+    Feedback
+JOIN 
+    Events ON Feedback.event_id = Events.event_id;
+--Find events with no attendees marked as "Absent":
+SELECT 
+    Events.event_id,
+    Events.title AS event_title,
+    Events.start_date,
+    Events.end_date
+FROM 
+    Events
+LEFT JOIN 
+    Attendance ON Events.event_id = Attendance.event_id AND Attendance.status = 'Absent'
+WHERE 
+    Attendance.attendance_id IS NULL;
