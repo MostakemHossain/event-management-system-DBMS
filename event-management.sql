@@ -679,3 +679,59 @@ JOIN
     Tickets t ON p.ticket_id = t.ticket_id
 JOIN 
     Users u ON p.user_id = u.user_id;  
+
+
+-- CREATE EventReviews
+CREATE TABLE EventReviews (
+    review_id INT AUTO_INCREMENT PRIMARY KEY,
+    event_id INT NOT NULL,
+    user_id INT NOT NULL,
+    rating TINYINT NOT NULL CHECK (rating BETWEEN 1 AND 5),
+    review TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (event_id) REFERENCES Events(event_id),
+    FOREIGN KEY (user_id) REFERENCES Users(user_id)
+);
+--Insert Event Review
+INSERT INTO EventReviews (event_id, user_id, rating, review)
+VALUES 
+(6, 1, 5, 'Amazing event! Very well organized.'), 
+(2, 2, 4, 'Great experience, but the venue was a bit crowded.'), 
+(4, 3, 3, 'Decent event, but could have been better managed.'), 
+(3, 2, 5, 'Fantastic! Loved every moment of it.'), 
+(2, 1, 2, 'Disappointing. The event started late and lacked coordination.');
+
+
+-- Fetch all eventReviews
+SELECT * FROM EventReviews;
+
+--Get All Reviews for a Specific Event
+SELECT er.review_id, u.name AS reviewer_name, er.rating, er.review, er.created_at
+FROM EventReviews er
+JOIN Users u ON er.user_id = u.user_id
+WHERE er.event_id = 2
+
+--  Get Average Rating for an Event
+SELECT AVG(rating) AS average_rating
+FROM EventReviews
+WHERE event_id = 2;
+
+ --List Top 3 Events with the Highest Average Ratings
+
+SELECT e.event_id, e.title, AVG(er.rating) AS average_rating
+FROM Events e
+JOIN EventReviews er ON e.event_id = er.event_id
+GROUP BY e.event_id, e.title
+ORDER BY average_rating DESC
+LIMIT 3;
+-- Get Reviews Written by a Specific User
+
+SELECT er.review_id, e.title AS event_title, er.rating, er.review, er.created_at
+FROM EventReviews er
+JOIN Events e ON er.event_id = e.event_id
+WHERE er.user_id = 3;
+-- Update a Review
+UPDATE EventReviews
+SET rating = 4, review = 'Great event, but could improve the sound system.'
+WHERE review_id = 1;
