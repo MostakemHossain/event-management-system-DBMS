@@ -735,3 +735,42 @@ WHERE er.user_id = 3;
 UPDATE EventReviews
 SET rating = 4, review = 'Great event, but could improve the sound system.'
 WHERE review_id = 1;
+
+
+-- create category table
+CREATE TABLE Categories (
+    category_id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL UNIQUE,
+    description TEXT
+);
+
+
+-- update category table
+ALTER TABLE Events
+ADD COLUMN category_id INT,
+ADD FOREIGN KEY (category_id) REFERENCES Categories(category_id);
+
+--Insert category table
+INSERT INTO Categories (name, description)
+VALUES
+('Music', 'Events featuring live music performances.'),
+('Sports', 'Sporting events like matches and tournaments.'),
+('Technology', 'Tech conferences, hackathons, and expos.'),
+('Education', 'Workshops, seminars, and educational events.'),
+('Art', 'Art exhibitions, galleries, and creative showcases.');
+
+
+-- Query
+-- List All Categories with Event Counts
+SELECT c.category_id, c.name AS category_name, COUNT(e.event_id) AS event_count
+FROM Categories c
+LEFT JOIN Events e ON c.category_id = e.category_id
+GROUP BY c.category_id, c.name
+ORDER BY event_count DESC;
+
+-- List Events Organized by a Specific User Along with Categories
+
+SELECT e.event_id, e.title, e.start_date, e.end_date, c.name AS category_name
+FROM Events e
+JOIN Categories c ON e.category_id = c.category_id
+WHERE e.organizer_id = 2;
