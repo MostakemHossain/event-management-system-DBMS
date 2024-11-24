@@ -611,4 +611,71 @@ LEFT JOIN
 WHERE 
     Attendance.attendance_id IS NULL;
     
-    
+  CREATE TABLE Payments (
+    payment_id INT AUTO_INCREMENT PRIMARY KEY,   
+    ticket_id INT,                             
+    user_id INT,                                
+    amount DECIMAL(10, 2) NOT NULL,               
+    payment_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+    payment_status ENUM('Pending', 'Completed', 'Failed', 'Refunded') DEFAULT 'Pending', 
+    payment_method ENUM('Credit Card', 'Debit Card', 'PayPal', 'Bank Transfer', 'Cash') DEFAULT 'Credit Card', --
+    transaction_id VARCHAR(255) UNIQUE,
+    FOREIGN KEY (ticket_id) REFERENCES Tickets(ticket_id),
+    FOREIGN KEY (user_id) REFERENCES Users(user_id)
+);
+
+SELECT * FROM Users;
+
+-- Insert sample data into Payments table
+INSERT INTO Payments (ticket_id, user_id, amount, payment_status, payment_method, transaction_id)
+VALUES
+(16, 1, 100.00, 'Completed', 'Credit Card', 'TXN123456789'),
+(17, 2, 200.00, 'Completed', 'PayPal', 'TXN987654321'),
+(18, 3, 300.00, 'Pending', 'Bank Transfer', 'TXN112233445'),
+(19, 4, 150.00, 'Failed', 'Cash', 'TXN556677889'),
+(20, 5, 250.00, 'Completed', 'Debit Card', 'TXN223344556');
+
+SELECT * FROM Payments;
+
+-- Fetch payments with status 'Completed'
+SELECT * FROM Payments WHERE payment_status = 'Completed';
+
+-- Fetch total amount paid by each user
+SELECT 
+    user_id,
+    SUM(amount) AS total_paid
+FROM 
+    Payments
+WHERE 
+    payment_status = 'Completed'
+GROUP BY 
+    user_id;
+
+-- Fetch all payments for a specific ticket
+SELECT * FROM Payments WHERE ticket_id = 3;
+
+-- Update payment status
+UPDATE Payments
+SET payment_status = 'Refunded'
+WHERE payment_id = 4;
+
+-- Fetch payments made in the last 7 days
+SELECT * FROM Payments 
+WHERE payment_date >= DATE_SUB(NOW(), INTERVAL 7 DAY);
+
+-- Fetch payment details along with user and ticket information
+SELECT 
+    p.payment_id,
+    p.amount,
+    p.payment_status,
+    p.payment_method,
+    t.ticket_type,
+    t.price AS ticket_price,
+    u.name AS user_name,
+    u.email AS user_email
+FROM 
+    Payments p
+JOIN 
+    Tickets t ON p.ticket_id = t.ticket_id
+JOIN 
+    Users u ON p.user_id = u.user_id;  
