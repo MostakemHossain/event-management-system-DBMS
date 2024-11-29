@@ -834,3 +834,180 @@ ON
     e.event_id = es.event_id
 GROUP BY 
     e.event_id;
+
+
+
+--Notifications
+CREATE TABLE Notifications (
+    notification_id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    event_id INT,
+    message TEXT NOT NULL,
+    notification_type VARCHAR(50) NOT NULL, 
+    is_read BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES Users(user_id),
+    FOREIGN KEY (event_id) REFERENCES Events(event_id)
+);
+
+INSERT INTO Notifications (user_id, event_id, message, notification_type) VALUES
+(1, 2, 'Your event "Tech Conference 2024" has a new schedule update.', 'Schedule Update'),
+(2, 3, 'The "Summer Music Fest" has been rescheduled to a new date.', 'Event Update'),
+(3, 4, 'Welcome to our Event Management Platform!', 'General');
+
+SELECT 
+    notification_id, 
+    message, 
+    notification_type, 
+    created_at
+FROM 
+    Notifications
+WHERE 
+    user_id = 1 
+    AND is_read = FALSE;
+
+UPDATE Notifications
+SET is_read = TRUE
+WHERE notification_id = 1;
+
+SELECT 
+    notification_id, 
+    user_id, 
+    message, 
+    is_read, 
+    created_at
+FROM 
+    Notifications
+WHERE 
+    event_id = 2;
+
+
+
+CREATE TABLE Vendors (
+    vendor_id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT,
+    name VARCHAR(100) NOT NULL,
+    contact_email VARCHAR(100) UNIQUE NOT NULL,
+    phone VARCHAR(15),
+    address VARCHAR(255),
+    category ENUM('catering', 'decorating', 'sound_system', 'transportation') NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE SET NULL
+);
+
+CREATE TABLE Services (
+    service_id INT AUTO_INCREMENT PRIMARY KEY,
+    vendor_id INT, 
+    name VARCHAR(100) NOT NULL,
+    description TEXT,
+    price DECIMAL(10, 2) NOT NULL,
+    availability_status ENUM('available', 'unavailable') DEFAULT 'available',
+    FOREIGN KEY (vendor_id) REFERENCES Vendors(vendor_id) ON DELETE CASCADE
+);
+
+
+CREATE TABLE Transportation (
+    transport_id INT AUTO_INCREMENT PRIMARY KEY,
+    vendor_id INT, 
+    vehicle_type ENUM('bus', 'van', 'truck', 'car') NOT NULL,
+    capacity INT NOT NULL,
+    price_per_hour DECIMAL(10, 2) NOT NULL,
+    FOREIGN KEY (vendor_id) REFERENCES Vendors(vendor_id) ON DELETE CASCADE
+);
+
+
+CREATE TABLE Equipment (
+    equipment_id INT AUTO_INCREMENT PRIMARY KEY,
+    vendor_id INT, 
+    name VARCHAR(100) NOT NULL,
+    rental_price DECIMAL(10, 2),
+    FOREIGN KEY (vendor_id) REFERENCES Vendors(vendor_id) ON DELETE CASCADE
+);
+
+INSERT INTO Vendors (user_id, name, contact_email, phone, address, category)
+VALUES 
+(3, 'Best Catering Service', 'catering@example.com', '5551234567', '789 Food Lane', 'catering'),
+(3, 'Elegant Decorations', 'decorations@example.com', '5552345678', '101 Event Rd', 'decorating');
+
+
+INSERT INTO Services (vendor_id, name, description, price, availability_status)
+VALUES 
+(1, 'Wedding Buffet', 'A complete wedding buffet for up to 200 guests.', 1000.00, 'available'),
+(1, 'Birthday Party Catering', 'Catering service for birthday parties, including cakes and snacks.', 500.00, 'available'),
+(2, 'Floral Decoration', 'Beautiful floral arrangements for weddings and events.', 300.00, 'available'),
+(2, 'Table Settings', 'Elegant table settings with fine china and napkins for formal events.', 150.00, 'available');
+
+
+INSERT INTO Transportation (vendor_id, vehicle_type, capacity, price_per_hour)
+VALUES 
+(1, 'bus', 50, 200.00),
+(1, 'van', 15, 80.00),
+(2, 'car', 4, 50.00);
+
+INSERT INTO Equipment (vendor_id, name, rental_price)
+VALUES 
+(1, 'Food Warmer', 75.00),
+(1, 'Serving Trays', 25.00),
+(2, 'Chairs', 10.00),
+(2, 'Tablecloths', 15.00);
+
+SELECT 
+    v.vendor_id,
+    v.name AS vendor_name,
+    v.contact_email,
+    v.phone,
+    v.address,
+    v.category AS vendor_category,
+    s.service_id,
+    s.name AS service_name,
+    s.description AS service_description,
+    s.price AS service_price,
+    s.availability_status AS service_availability,
+    t.transport_id,
+    t.vehicle_type,
+    t.capacity AS vehicle_capacity,
+    t.price_per_hour AS vehicle_price_per_hour,
+    e.equipment_id,
+    e.name AS equipment_name,
+    e.rental_price AS equipment_rental_price
+FROM 
+    Vendors v
+LEFT JOIN 
+    Services s ON v.vendor_id = s.vendor_id
+LEFT JOIN 
+    Transportation t ON v.vendor_id = t.vendor_id
+LEFT JOIN 
+    Equipment e ON v.vendor_id = e.vendor_id;
+
+SELECT 
+    v.vendor_id,
+    v.name AS vendor_name,
+    v.contact_email,
+    v.phone,
+    v.address,
+    v.category AS vendor_category,
+    s.service_id,
+    s.name AS service_name,
+    s.description AS service_description,
+    s.price AS service_price,
+    s.availability_status AS service_availability
+FROM 
+    Vendors v
+JOIN 
+    Services s ON v.vendor_id = s.vendor_id;
+
+SELECT 
+    v.vendor_id,
+    v.name AS vendor_name,
+    v.contact_email,
+    v.phone,
+    v.address,
+    v.category AS vendor_category,
+    s.service_id,
+    s.name AS service_name,
+    s.description AS service_description,
+    s.price AS service_price,
+    s.availability_status AS service_availability
+FROM 
+    Vendors v
+LEFT JOIN 
+    Services s ON v.vendor_id = s.vendor_id;
