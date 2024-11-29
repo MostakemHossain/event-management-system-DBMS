@@ -1135,3 +1135,206 @@ JOIN
     Events e ON ep.event_id = e.event_id
 WHERE
     ep.is_active = TRUE;
+
+
+--  Trigger: Ensure Booking Status Updates for Venues
+DELIMITER $$
+CREATE TRIGGER update_booking_status_after_event_creation
+AFTER INSERT ON Events
+FOR EACH ROW
+BEGIN
+    UPDATE Venues
+    SET booking_status = 'Booked'
+    WHERE venue_id = NEW.venue_id;
+END $$
+
+DELIMITER ;
+
+
+-- Trigger: Update Booking Status Back to Available
+
+DELIMITER $$
+
+CREATE TRIGGER update_booking_status_after_event_deletion
+AFTER DELETE ON Events
+FOR EACH ROW
+BEGIN
+    UPDATE Venues
+    SET booking_status = 'Available'
+    WHERE venue_id = OLD.venue_id;
+END $$
+DELIMITER ;
+
+
+SHOW TRIGGERS;
+
+--Trigger: Before Insert Trigger for User Table
+DELIMITER $$
+
+CREATE TRIGGER before_user_insert
+BEFORE INSERT ON Users
+FOR EACH ROW
+BEGIN
+    IF NEW.role IS NULL THEN
+        SET NEW.role = 'user';
+    END IF;
+END$$
+
+DELIMITER ;
+
+
+--View : View for Upcoming Events
+CREATE VIEW UpcomingEvents AS
+SELECT e.event_id, e.title, e.description, e.start_date, e.end_date, v.name AS venue_name
+FROM Events e
+JOIN Venues v ON e.venue_id = v.venue_id
+WHERE e.end_date > CURDATE();
+
+-- Stored Procedure : Get User Tickets
+DELIMITER $$
+
+CREATE PROCEDURE GetUserTickets(IN userId INT)
+BEGIN
+    SELECT t.ticket_id, t.ticket_type, t.price, e.title AS event_title
+    FROM Tickets t
+    JOIN Events e ON t.event_id = e.event_id
+    WHERE t.user_id = userId;
+END$$
+
+DELIMITER ;
+
+CALL GetUserTickets(1);
+
+INSERT INTO Users (name, email, password, phoneNumber, role, bio, address, date_of_birth)
+VALUES
+('John Doe', 'johndoe@example.com', 'password123', '1234567890', 'user', 'Software Developer', '123 Main St', '1990-01-01'),
+('Alice Smith', 'alice@example.com', 'password456', '0987654321', 'organizer', 'Event Organizer', '456 Oak St', '1985-02-02');
+
+
+INSERT INTO Venues (name, location, capacity, description, contact_info, facilities, total_price, images, manager_name, manager_contact, opening_hours)
+VALUES
+('Grand Hall', '123 Event Rd', 500, 'A grand hall for large events', 'info@grandhall.com', 'Projector, Sound System', 2000.00, 'image1.jpg', 'John Manager', '123-456-7890', 'Mon-Fri, 9:00 AM - 6:00 PM'),
+('Conference Room', '456 Meeting Blvd', 100, 'A smaller venue for conferences', 'info@conferenceroom.com', 'Wi-Fi, Whiteboard', 800.00, 'image2.jpg', 'Alice Manager', '098-765-4321', 'Mon-Fri, 9:00 AM - 5:00 PM');
+
+
+
+
+INSERT INTO Users (name, email, password, phoneNumber, role, bio, address, date_of_birth, is_active)
+VALUES 
+('John Doe', 'johndoe1@example.com', 'hashed_password_here', '1234567890', 'user', 'A regular user.', '123 Main St', '1990-01-01', TRUE);
+
+
+INSERT INTO Events (title, description, start_date, end_date, organizer_id, venue_id)
+VALUES 
+('Music Concert', 'A great music concert with amazing performances.', '2024-12-15', '2024-12-16', 2, 10);
+
+INSERT INTO Tickets (event_id, user_id, ticket_type, price, purchase_date)
+VALUES 
+(2, 1, 'VIP', 50.00, '2024-11-29'),
+(3, 2, 'REGULAR', 30.00, '2024-11-29');
+
+
+SELECT * FROM Tickets;
+
+CALL GetUserTickets(1);
+
+INSERT INTO Users (name, email, password, phoneNumber, role, bio, address, date_of_birth, is_active)
+VALUES 
+('Jane Smith', 'janesmith@example.com', 'hashed_password_here', '9876543210', 'user', 'A new user.', '456 Main St', '1995-05-15', TRUE);
+
+INSERT INTO Tickets (event_id, user_id, ticket_type, price, purchase_date)
+VALUES 
+(2, 4, 'VIP', 50.00, '2024-11-29');
+
+CALL GetUserTickets(4);
+
+
+
+-- View: UserTicketInfo
+CREATE VIEW UserTicketInfo AS
+SELECT 
+    u.user_id, 
+    u.name AS user_name, 
+    t.ticket_id, 
+    t.ticket_type, 
+    t.price, 
+    t.purchase_date, 
+    e.title AS event_title, 
+    e.start_date, 
+    e.end_date
+FROM Users u
+JOIN Tickets t ON u.user_id = t.user_id
+JOIN Events e ON t.event_id = e.event_id;
+
+SELECT * FROM UserTicketInfo WHERE user_id = 1;
+
+
+-- View: EventListWithSponsor
+CREATE VIEW EventListWithSponsor AS
+SELECT 
+    e.event_id, 
+    e.title AS event_title, 
+    e.start_date, 
+    e.end_date, 
+    s.name AS sponsor_name, 
+    s.sponsorship_amount
+FROM Events e
+LEFT JOIN Sponsors s ON e.event_id = s.event_id;
+SELECT * FROM EventListWithSponsor;
+
+
+--Procedure: GetEventDetails
+DELIMITER $$
+
+CREATE PROCEDURE GetEventDetails(IN eventId INT)
+BEGIN
+    SELECT 
+        e.event_id, 
+        e.title, 
+        e.description, 
+        e.start_date, 
+        e.end_date, 
+        COUNT(a.attendance_id) AS attendees_count, 
+        AVG(f.rating) AS average_rating
+    FROM Events e
+    LEFT JOIN Attendance a ON e.event_id = a.event_id
+    LEFT JOIN Feedback f ON a.attendance_id = f.attendance_id
+    WHERE e.event_id = eventId
+    GROUP BY e.event_id;
+END$$
+
+DELIMITER ;
+CALL GetEventDetails(4);
+
+
+--show all trigger
+SELECT 
+    TABLE_NAME AS view_name,
+    VIEW_DEFINITION
+FROM 
+    INFORMATION_SCHEMA.VIEWS
+WHERE 
+    TABLE_SCHEMA = 'Event_management';
+
+-- show all procedure
+SELECT 
+    ROUTINE_NAME,
+    ROUTINE_TYPE,
+    CREATED,
+    LAST_ALTERED
+FROM 
+    INFORMATION_SCHEMA.ROUTINES
+WHERE 
+    ROUTINE_SCHEMA = 'Event_management' AND ROUTINE_TYPE = 'PROCEDURE';
+
+-- show all trigger
+SELECT 
+    TRIGGER_NAME,
+    EVENT_OBJECT_TABLE AS table_name,
+    ACTION_TIMING,
+    EVENT_MANIPULATION AS event,
+    ACTION_STATEMENT
+FROM 
+    INFORMATION_SCHEMA.TRIGGERS
+WHERE 
+    TRIGGER_SCHEMA = 'Event_management';
