@@ -1099,3 +1099,39 @@ FROM
     EventDiscounts ed
 JOIN 
     Events e ON ed.event_id = e.event_id;
+
+CREATE TABLE EventPromotions (
+    promotion_id INT AUTO_INCREMENT PRIMARY KEY,
+    event_id INT,
+    promotion_type ENUM('flyer', 'online', 'poster', 'social_media', 'email_campaign') NOT NULL,
+    promotion_description TEXT,
+    promotion_start_date DATE NOT NULL,
+    promotion_end_date DATE NOT NULL,
+    promotion_media_url VARCHAR(255),
+    is_active BOOLEAN DEFAULT TRUE,
+    FOREIGN KEY (event_id) REFERENCES Events(event_id) ON DELETE CASCADE
+);
+
+INSERT INTO EventPromotions (event_id, promotion_type, promotion_description, promotion_start_date, promotion_end_date, promotion_media_url, is_active)
+VALUES
+(2, 'flyer', 'Promotional flyer for Tech Fest 2024.', '2024-02-01', '2024-03-01', 'http://example.com/promotions/techfest_flyer.jpg', TRUE),
+(6, 'online', 'Online ad campaign for Summer Bash 2024.', '2024-05-01', '2024-06-01', 'http://example.com/promotions/summerbash_online.jpg', TRUE),
+(3, 'social_media', 'Instagram promotion for VIP Gala 2024.', '2024-03-01', '2024-04-01', 'http://example.com/promotions/vipgala_social.jpg', TRUE),
+(4, 'email_campaign', 'Email campaign for Student Fest 2024.', '2024-06-01', '2024-07-01', 'http://example.com/promotions/studentfest_email.jpg', TRUE);
+
+SELECT
+    ep.promotion_id,
+    ep.promotion_type,
+    ep.promotion_description,
+    ep.promotion_start_date,
+    ep.promotion_end_date,
+    ep.promotion_media_url,
+    ep.is_active,
+    e.title AS event_title,
+    e.description AS event_description
+FROM
+    EventPromotions ep
+JOIN
+    Events e ON ep.event_id = e.event_id
+WHERE
+    ep.is_active = TRUE;
