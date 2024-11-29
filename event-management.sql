@@ -1017,7 +1017,7 @@ CREATE TABLE EventStaff (
     staff_id INT AUTO_INCREMENT PRIMARY KEY,
     event_id INT,
     name VARCHAR(100) NOT NULL,
-    role ENUM('security', 'coordinator', 'photographer', 'usher') NOT NULL,
+    role ENUM('security', 'coordinator', 'photographer') NOT NULL,
     phone VARCHAR(15),
     email VARCHAR(100) UNIQUE,
     FOREIGN KEY (event_id) REFERENCES Events(event_id) ON DELETE CASCADE
@@ -1058,3 +1058,44 @@ FROM
     EventStaff es
 JOIN 
     Events e ON es.event_id = e.event_id;
+
+
+CREATE TABLE EventDiscounts (
+    discount_id INT AUTO_INCREMENT PRIMARY KEY,
+    event_id INT,
+    discount_code VARCHAR(50) UNIQUE NOT NULL,
+    description TEXT,
+    discount_percentage DECIMAL(5, 2) NOT NULL CHECK (discount_percentage > 0 AND discount_percentage <= 100),
+    valid_from DATE NOT NULL,
+    valid_to DATE NOT NULL,
+    max_usage INT NOT NULL DEFAULT 1,
+    usage_count INT NOT NULL DEFAULT 0,
+    FOREIGN KEY (event_id) REFERENCES Events(event_id) ON DELETE CASCADE
+);
+
+INSERT INTO EventDiscounts (event_id, discount_code, description, discount_percentage, valid_from, valid_to, max_usage, usage_count)
+VALUES
+(2, 'EARLYBIRD10', 'Early Bird Discount: 10% off tickets for early registration', 10.00, '2024-01-01', '2024-02-01', 100, 0),
+(2, 'SUMMER20', 'Summer Special: 20% off tickets for the summer event', 20.00, '2024-05-01', '2024-06-30', 200, 25),
+(3, 'VIP50', 'VIP Discount: 50% off VIP tickets for special guests', 50.00, '2024-03-01', '2024-04-30', 50, 5),
+(4, 'STUDENT15', 'Student Discount: 15% off tickets for students', 15.00, '2024-07-01', '2024-08-31', 300, 0),
+(6, 'BLACKFRIDAY25', 'Black Friday Sale: 25% off on all tickets', 25.00, '2024-11-01', '2024-11-30', 500, 10);
+
+SELECT 
+    ed.discount_id,
+    ed.discount_code,
+    ed.description AS discount_description,
+    ed.discount_percentage,
+    ed.valid_from,
+    ed.valid_to,
+    ed.max_usage,
+    ed.usage_count,
+    e.event_id,
+    e.title AS event_title,
+    e.description AS event_description,
+    e.start_date,
+    e.end_date
+FROM 
+    EventDiscounts ed
+JOIN 
+    Events e ON ed.event_id = e.event_id;
