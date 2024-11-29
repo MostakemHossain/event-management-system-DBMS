@@ -774,3 +774,63 @@ SELECT e.event_id, e.title, e.start_date, e.end_date, c.name AS category_name
 FROM Events e
 JOIN Categories c ON e.category_id = c.category_id
 WHERE e.organizer_id = 2;
+
+
+--Events Schedules
+CREATE TABLE EventSchedules (
+    schedule_id INT AUTO_INCREMENT PRIMARY KEY,
+    event_id INT NOT NULL,
+    activity_name VARCHAR(255) NOT NULL,
+    description TEXT,
+    schedule_date DATE NOT NULL,
+    start_time TIME NOT NULL,
+    end_time TIME NOT NULL,
+    FOREIGN KEY (event_id) REFERENCES Events(event_id) ON DELETE CASCADE
+);
+
+SELECT * FROM Events;
+
+INSERT INTO EventSchedules (event_id, activity_name, description, schedule_date, start_time, end_time) VALUES
+(2, 'Keynote Speech', 'Opening speech by the keynote speaker.', '2024-12-10', '10:00:00', '11:00:00'),
+(3, 'Panel Discussion', 'Discussion on emerging technologies.', '2024-12-10', '11:30:00', '13:00:00'),
+(4, 'Opening Band Performance', 'Performance by the opening band.', '2024-06-20', '15:00:00', '16:30:00'),
+(6, 'Headline Performance', 'Main performance by the headliner.', '2024-06-20', '18:00:00', '20:00:00');
+
+SELECT 
+    e.title AS event_title, 
+    es.activity_name, 
+    es.description AS activity_description, 
+    es.schedule_date, 
+    es.start_time, 
+    es.end_time
+FROM 
+    EventSchedules es
+JOIN 
+    Events e 
+ON 
+    es.event_id = e.event_id
+WHERE 
+    e.event_id = 2;
+
+SELECT 
+    event_id, 
+    title, 
+    start_date, 
+    end_date
+FROM 
+    Events
+WHERE 
+    start_date >= '2024-12-01' 
+    AND end_date <= '2024-12-31';
+
+SELECT 
+    e.title AS event_title, 
+    COUNT(es.schedule_id) AS schedule_count
+FROM 
+    Events e
+LEFT JOIN 
+    EventSchedules es 
+ON 
+    e.event_id = es.event_id
+GROUP BY 
+    e.event_id;
