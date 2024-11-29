@@ -1011,3 +1011,50 @@ FROM
     Vendors v
 LEFT JOIN 
     Services s ON v.vendor_id = s.vendor_id;
+
+
+CREATE TABLE EventStaff (
+    staff_id INT AUTO_INCREMENT PRIMARY KEY,
+    event_id INT,
+    name VARCHAR(100) NOT NULL,
+    role ENUM('security', 'coordinator', 'photographer', 'usher') NOT NULL,
+    phone VARCHAR(15),
+    email VARCHAR(100) UNIQUE,
+    FOREIGN KEY (event_id) REFERENCES Events(event_id) ON DELETE CASCADE
+);
+
+
+INSERT INTO EventStaff (event_id, name, role, phone, email)
+VALUES 
+(2, 'John Doe', 'security', '555-1234', 'johndoe@eventstaff.com'),
+(4, 'Jane Smith', 'coordinator', '555-5678', 'janesmith@eventstaff.com'),
+(2, 'Emily Johnson', 'photographer', '555-8765', 'emilyjohnson@eventstaff.com'),
+(2, 'Michael Brown', 'usher', '555-4321', 'michaelbrown@eventstaff.com');
+
+SELECT 
+    e.title AS event_title,
+    e.start_date,
+    e.end_date,
+    es.name AS staff_name,
+    es.role AS staff_role,
+    es.phone AS staff_phone,
+    es.email AS staff_email
+FROM 
+    EventStaff es
+JOIN 
+    Events e ON es.event_id = e.event_id
+WHERE 
+    e.event_id = 2;  
+
+SELECT 
+    e.title AS event_title,
+    e.start_date,
+    e.end_date,
+    es.name AS staff_name,
+    es.role AS staff_role,
+    es.phone AS staff_phone,
+    es.email AS staff_email
+FROM 
+    EventStaff es
+JOIN 
+    Events e ON es.event_id = e.event_id;
