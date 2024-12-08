@@ -1262,6 +1262,7 @@ SELECT
     e.title AS event_title, 
     e.start_date, 
     e.end_date
+    
 FROM Users u
 JOIN Tickets t ON u.user_id = t.user_id
 JOIN Events e ON t.event_id = e.event_id;
